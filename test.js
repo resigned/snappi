@@ -1,4 +1,4 @@
-const meme = require("./lolclass.js")
+const meme = require("./aya.js")
 
 const dank = new meme({ port: 80 })
 dank.use(async (req, res) => {
