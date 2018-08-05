@@ -3,7 +3,6 @@ const http = require("http")
 class dank {
   constructor(opts) {
     const defaults = { port: 80 }
-    //^ this needs to have all the defaults :P
     this.opts = { ...defaults, ...opts }
     this.routes = {
       GET: [],
@@ -23,47 +22,57 @@ class dank {
     this.middleware.push(func)
   }
 
-  route(method, route, func) {
+  route(method, route, ...func) {
     try {
-      let tmp = [route.split("/").splice(1), func]
-      tmp[0] = tmp[0].filter(String)
-      this.routes[method.toUpperCase()].push(tmp)
+      this.routes[method.toUpperCase()].push([
+        route
+          .split("/")
+          .splice(1)
+          .filter(String),
+        func,
+      ])
     } catch (err) {
-      throw new Error(`${method} is not a valid request method.`)
+      throw new Error(`Invalid route setup`)
     }
-  }
-
-  print() {
-    console.log(this.routes)
   }
 
   async handler(req, res, routes, middleware) {
     try {
-      for (var func of middleware) await func(req, res)
+      for (let func of middleware) await func(req, res)
     } catch (err) {
       res.end(err.message)
       return
     }
 
-    let path = req.url.split("/")
-    path = path.filter(String)
+    const path = req.url.split("/").filter(String)
 
     try {
-      let route = await routes[req.method].find((route) => {
+      let r
+      for (let route of routes[req.method]) {
+        if (path.length != route[0].length) continue
+        let i = 0
         let params = {}
-        if (path.length != route[0].length) return false
-        for (var i = 0; i < route[0].length; i++) {
-          if (route[0][i].startsWith(":")) {
+        for (i = i; i < route[0].length; i++) {
+          if (route[0][i].charAt() == ":") {
             params[route[0][i].substring(1)] = path[i]
-          } else if (path[i] != route[0][i]) return false
+          } else if (path[i] != route[0][i]) break
         }
-        req.parameters = params
-        return true
-      })
-      route[1](req, res)
+        if (i != route[0].length) continue
+        req.params = params
+        r = route
+        break
+      }
+
+      if (r == undefined) throw new Error("Invalid route")
+
+      for (var func of r[1])
+        if (func instanceof Function) {
+          await func(req, res)
+        } else {
+          req = { ...req, ...func }
+        }
     } catch (err) {
-      //console.log(err)
-      res.end("Invalid path")
+      res.end(err.message)
     }
   }
 
