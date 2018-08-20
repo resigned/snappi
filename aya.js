@@ -68,11 +68,10 @@ class dank {
     try {
       let r;
       let routesReq = this.routes[req.method];
-      let routesKeys = Object.keys(routesReq);
-      let routesLen = routesKeys.length;
+      let routesLen = routesReq.length;
       let outerI = 0;
       for (;outerI<routesLen;outerI++) {
-        let route = routesReq[routesKeys[outerI]];
+        let route = routesReq[outerI];
         let nRoute = route[0];
         if (path.length != nRoute.length) continue;
         let params = {};
