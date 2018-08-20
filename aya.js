@@ -15,11 +15,36 @@ class dank {
       TRACE: [],
       PATCH: [],
     };
-    this.middleware = [];
+    this.pre_middleware = [];
+    this.aft_middleware = [];
   }
 
-  use(func) {
-    this.middleware.push(func);
+  pre(func) {
+    if (func.length == 2) {
+      this.pre_middleware.push(func);
+    } else if (func.length == 3) {
+      this.pre_middleware.push((req, res) => {
+        return new Promise((next) => {
+          func(req, res, next);
+        });
+      });
+    } else {
+      throw new Error("Invalid function");
+    }
+  }
+
+  aft(func) {
+    if (func.length == 2) {
+      this.aft_middleware.push(func);
+    } else if (func.length == 3) {
+      this.aft_middleware.push((req, res) => {
+        return new Promise((next) => {
+          func(req, res, next);
+        });
+      });
+    } else {
+      throw new Error("Invalid function");
+    }
   }
 
   route(method, route, ...func) {
@@ -30,9 +55,9 @@ class dank {
     }
   }
 
-  async handler(req, res, routes, middleware) {
+  async h(req, res) {
     try {
-      for (let func of middleware) await func(req, res);
+      for (let func of this.pre_middleware) await func(req, res);
     } catch (err) {
       res.end(err.message);
       return;
@@ -42,7 +67,7 @@ class dank {
 
     try {
       let r;
-      for (let route of routes[req.method]) {
+      for (let route of this.routes[req.method]) {
         if (path.length != route[0].length) continue;
         let params = {};
         let i = 0;
@@ -59,7 +84,7 @@ class dank {
       }
 
       if (r == undefined) throw new Error("Invalid route");
-      for (let func of r[1])
+      for (let func of [...this.aft_middleware, ...r[1]])
         if (func instanceof Function) {
           await func(req, res);
         } else {
@@ -73,7 +98,7 @@ class dank {
   start() {
     this.server = http
       .createServer(async (req, res) => {
-        this.handler(req, res, this.routes, this.middleware);
+        this.h(req, res);
       })
       .listen({ port: this.opts.port });
     console.log("Listening on port", this.opts.port);
