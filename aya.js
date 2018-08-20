@@ -15,15 +15,15 @@ class dank {
       TRACE: [],
       PATCH: [],
     };
-    this.pre_middleware = [];
-    this.aft_middleware = [];
+    this.preMiddleware = [];
+    this.aftMiddleware = [];
   }
 
   pre(func) {
     if (func.length == 2) {
-      this.pre_middleware.push(func);
+      this.preMiddleware.push(func);
     } else if (func.length == 3) {
-      this.pre_middleware.push((req, res) => {
+      this.preMiddleware.push((req, res) => {
         return new Promise((next) => {
           func(req, res, next);
         });
@@ -35,9 +35,9 @@ class dank {
 
   aft(func) {
     if (func.length == 2) {
-      this.aft_middleware.push(func);
+      this.aftMiddleware.push(func);
     } else if (func.length == 3) {
-      this.aft_middleware.push((req, res) => {
+      this.aftMiddleware.push((req, res) => {
         return new Promise((next) => {
           func(req, res, next);
         });
@@ -59,37 +59,50 @@ class dank {
   }
 
   async h(req, res) {
-    for (let i = 0; i < this.pre_middleware.length; i++) {
-      let next = await this.pre_middleware[i](req, res);
+    let preMiddle = this.preMiddleware;
+    
+    const preMiddleLen = preMiddle.length;
+    
+    for (let i = 0; i < preMiddleLen; i++) {
+      let next = await preMiddle[i](req, res);
       if (next != undefined) return;
     }
 
     let path = req.url.split("/");
-    let tmp_arr = [];
+    let _temp = [];
+    
     for (let i = 0; i < path.length; i++) {
       if (path[i] != "") {
-        tmp_arr.push(path[i]);
+        _temp.push(path[i]);
       }
     }
-    path = tmp_arr;
+    path = _temp;
 
     let r;
     let routesReq = this.routes[req.method];
-    let routesLen = routesReq.length;
     let outerI = 0;
+    
+    const routesLen = routesReq.length;
+    
     for (; outerI < routesLen; outerI++) {
       let route = routesReq[outerI];
       let nRoute = route[0];
-      if (path.length != nRoute.length) continue;
+      
+      const nRouteLen = nRoute.length;
+      
+      if (path.length != nRouteLen) continue;
       let params = {};
       let i = 0;
-      for (let tempRoute = nRoute.length; i < tempRoute; i++) {
+      
+      const tempRoute = nRoute.length
+      
+      for (; i < tempRoute; i++) {
         let routePointer = nRoute[i];
         if (routePointer.charAt() == ":" && path[i].length != 0) {
           params[routePointer.substring(1)] = path[i];
         } else if (path[i] != routePointer) break;
       }
-      if (i != nRoute.length) continue;
+      if (i != nRouteLen) continue;
       req.params = params;
       r = route;
       break;
@@ -99,8 +112,12 @@ class dank {
       res.end("Invalid route");
       return;
     }
-    for (let i = 0; i < r[1].length; i++) {
-      let func = r[1][i];
+    let anchor = r[1];
+    let anchorI = 0;
+    
+    const anchorLen = anchor.length;
+    for (; anchorI < anchorLen; anchorI++) {
+      let func = anchor[anchorI];
       if (func instanceof Function) {
         let next = await func(req, res);
         if (next != undefined) return;
@@ -112,9 +129,19 @@ class dank {
 
   start() {
     let arr = Object.entries(this.routes);
-    for (let method of arr) {
-      for (let route of method[1]) {
-        route[1] = [...this.aft_middleware, ...route[1]];
+    let i = 0;
+    
+    const arrLen = arr.length;
+    
+    for (; i < arrLen; i++) {
+      let routes = arr[i][1];
+      let innerI = 0;
+      
+      const routesLen = routes.length;
+      
+      for (; innerI < routesLen; innerI++) {
+        let route = routes[innerI];
+        route[1] = [...this.aftMiddleware, ...route[1]];
       }
     }
     this.server = http
