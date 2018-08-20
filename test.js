@@ -1,24 +1,33 @@
-const meme = require("./aya.js")
+const meme = require("./aya.js");
 
-const dank = new meme({ port: 80 })
-dank.use(async (req, res) => {
-  //res.statusCode = 404
-  //console.log(req.method)
-  //throw new Error("bad stuff happened")
-})
+const dank = new meme({ port: 80 });
 
-dank.use(async (req, res) => {
-  req.hello = "world"
-})
+dank.pre(async (req, res) => {
+  //console.log("test before routing");
+  req.one = true;
+});
+
+dank.pre(async (req, res, next) => {
+  //console.log("this will stop everything!");
+  req.two = true;
+  next();
+});
+
+dank.aft(async (req, res, next) => {
+  next();
+  //console.log("hey");
+});
+
+dank.route("GET", "/favicon.ico", async (req, res) => {
+  res.end();
+});
 
 dank.route("GET", "/", async (req, res) => {
-  //console.log(req)
-  res.end(`HOWDY ${req.hello}`)
-})
+  res.end("Hello");
+});
 
-dank.route("GET", "/test/:id", async (req, res) => {
-  res.end("hello " + req.parameters.id)
-  //console.log("hello")
-})
+dank.route("GET", "/user/:id", async (req, res) => {
+  res.end(`User: ${req.params.id}`);
+});
 
-dank.start()
+dank.start();
