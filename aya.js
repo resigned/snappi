@@ -67,17 +67,23 @@ class dank {
 
     try {
       let r;
-      for (let route of this.routes[req.method]) {
-        if (path.length != route[0].length) continue;
+      let routesReq = this.routes[req.method];
+      let routesKeys = Object.keys(routesReq);
+      let routesLen = routesKeys.length;
+      let outerI = 0;
+      for (;outerI<routesLen;outerI++) {
+        let route = routesReq[routesKeys[outerI]];
+        let nRoute = route[0];
+        if (path.length != nRoute.length) continue;
         let params = {};
         let i = 0;
-        for (let temp_route = route[0].length; i < temp_route; i++) {
-          let route_pointer = route[0][i];
-          if (route_pointer.charAt() == ":") {
-            params[route_pointer.substring(1)] = path[i];
-          } else if (path[i] != route_pointer) break;
+        for (let tempRoute = nRoute.length; i < tempRoute; i++) {
+          let routePointer = nRoute[i];
+          if (routePointer.charAt() == ":") {
+            params[routePointer.substring(1)] = path[i];
+          } else if (path[i] != routePointer) break;
         }
-        if (i != route[0].length) continue;
+        if (i != nRoute.length) continue;
         req.params = params;
         r = route;
         break;
