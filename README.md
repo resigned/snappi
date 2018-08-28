@@ -4,9 +4,9 @@ A simple web framework for API servers
 Goals are to have useful features without becoming too bloated
 
 ```js
-const meme = require("./aya.js");
+const aya = require("./aya.js");
 
-const dank = new meme({ port: 80 });
+const dank = new aya({ port: 80 });
 
 dank.pre((req, res, next) => {
   req.one = true;
