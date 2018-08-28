@@ -1,36 +1,55 @@
 # aya
 
-A simple web framework for API servers
-Goals are to have useful features without becoming too bloated
+A simple web framework that is simple and aims to be _fast_
+
+**Supports**
+async/await and ES6 features
+
+## Routing explanation
+
+Aya has a very _simple_ routing pipe just like popular frameworks, ie: express
+
+`use` -> `route handlers`
+
+#### Example
 
 ```js
 const aya = require("./aya.js");
 
-const dank = new aya({ port: 80 });
+const server = new aya({ port: 80 });
 
-dank.pre((req, res, next) => {
-  req.one = true;
-  next();
+server.use(async (req, res) => {
+  req.test = "hello";
 });
 
-dank.pre((req, res) => {
-//this also works
+server.use((req, res) => {
+  console.log(req.test); //would return "hello"
 });
 
-dank.pre(async (req, res, next) => {
-  req.two = true;
-  next();
-});
-
-dank.route("GET", "/favicon.ico", (_) => {});
-
-dank.route("GET", "/", (req, res) => {
+server.route("GET", "/", (req, res) => {
   res.end("Hello");
 });
 
-dank.route("GET", "/user/:id", (req, res) => {
-  res.end(`User: ${req.params.id}`);
-});
+server.listen(80);
+```
 
-dank.start();
+_Both async and regular functions work._
+
+## Additional features
+
+You're able to chain functions or pass objects to a route
+
+```js
+server.route(
+  "GET",
+  "/",
+  { test: "hello" },
+  (req, res) => {
+    console.log(req.test); //would return hellp
+  },
+  (req, res) => {
+    res.end("hey");
+    //chaining works as such
+  }
+);
 ```

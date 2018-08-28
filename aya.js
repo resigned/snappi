@@ -2,7 +2,7 @@ const http = require("http");
 
 class dank {
   constructor(opts) {
-    const defaults = { port: 80 };
+    const defaults = {};
     this.opts = { ...defaults, ...opts };
     this.routes = {
       GET: {},
@@ -15,15 +15,14 @@ class dank {
       TRACE: {},
       PATCH: {}
     };
-    this.preMiddleware = [];
-    this.aftMiddleware = [];
+    this.Middleware = [];
   }
 
-  pre(func) {
+  use(func) {
     if (func.length == 2) {
-      this.preMiddleware.push(func);
+      this.Middleware.push(func);
     } else if (func.length == 3) {
-      this.preMiddleware.push((req, res) => {
+      this.Middleware.push((req, res) => {
         return new Promise(next => {
           func(req, res, next);
         });
@@ -59,8 +58,8 @@ class dank {
   }
 
   async h(req, res) {
-    for (let i = 0; i < this.preMiddleware.length; i++) {
-      const next = await this.preMiddleware[i](req, res);
+    for (let i = 0; i < this.Middleware.length; i++) {
+      const next = await this.Middleware[i](req, res);
       if (next != undefined) return;
     }
 
@@ -99,7 +98,7 @@ class dank {
       res.end("Invalid route");
       return;
     }
-    const anchor = [...this.aftMiddleware, ...r[1]];
+    const anchor = r[1];
     let anchorI = 0;
 
     const anchorLen = anchor.length;
@@ -114,32 +113,13 @@ class dank {
     }
   }
 
-  start() {
-    /**
-    let arr = Object.entries(this.routes);
-    let i = 0;
-
-    const arrLen = arr.length;
-
-    for (; i < arrLen; i++) {
-      let routes = arr[i][1];
-      let innerI = 0;
-
-      const routesLen = routes.length;
-
-      for (; innerI < routesLen; innerI++) {
-        let route = routes[innerI];
-        route[1] = [...this.aftMiddleware, ...route[1]];
-      }
-    }
-    **/
-
+  listen(port) {
     this.server = http
       .createServer(async (req, res) => {
         this.h(req, res);
       })
-      .listen({ port: this.opts.port });
-    console.log("Listening on port", this.opts.port);
+      .listen({ port: port });
+    console.log("Listening on port", port);
   }
 }
 module.exports = dank;
