@@ -1,6 +1,6 @@
 const aya = require("../aya.js");
 
-const server = new aya({ port: 80 });
+const server = new aya();
 
 server.use(async (req, res) => {
   req.test = "hello";
