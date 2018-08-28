@@ -5,15 +5,15 @@ class dank {
     const defaults = { port: 80 };
     this.opts = { ...defaults, ...opts };
     this.routes = {
-      GET: [],
-      HEAD: [],
-      POST: [],
-      PUT: [],
-      DELETE: [],
-      CONNECT: [],
-      OPTIONS: [],
-      TRACE: [],
-      PATCH: [],
+      GET: {},
+      HEAD: {},
+      POST: {},
+      PUT: {},
+      DELETE: {},
+      CONNECT: {},
+      OPTIONS: {},
+      TRACE: {},
+      PATCH: {}
     };
     this.preMiddleware = [];
     this.aftMiddleware = [];
@@ -24,7 +24,7 @@ class dank {
       this.preMiddleware.push(func);
     } else if (func.length == 3) {
       this.preMiddleware.push((req, res) => {
-        return new Promise((next) => {
+        return new Promise(next => {
           func(req, res, next);
         });
       });
@@ -38,7 +38,7 @@ class dank {
       this.aftMiddleware.push(func);
     } else if (func.length == 3) {
       this.aftMiddleware.push((req, res) => {
-        return new Promise((next) => {
+        return new Promise(next => {
           func(req, res, next);
         });
       });
@@ -48,61 +48,48 @@ class dank {
   }
 
   route(method, route, ...func) {
+    const routeSTR = route.split("/").filter(String);
     try {
-      this.routes[method.toUpperCase()].push([
-        route.split("/").filter(String),
-        func,
-      ]);
+      if (this.routes[method.toUpperCase()][routeSTR.length] == undefined)
+        this.routes[method.toUpperCase()][routeSTR.length] = [];
+      this.routes[method.toUpperCase()][routeSTR.length].push([routeSTR, func]);
     } catch (err) {
       throw new Error(`Invalid route setup`);
     }
   }
 
   async h(req, res) {
-    let preMiddle = this.preMiddleware;
-    
-    const preMiddleLen = preMiddle.length;
-    
-    for (let i = 0; i < preMiddleLen; i++) {
-      let next = await preMiddle[i](req, res);
+    for (let i = 0; i < this.preMiddleware.length; i++) {
+      const next = await this.preMiddleware[i](req, res);
       if (next != undefined) return;
     }
 
-    let path = req.url.split("/");
-    let _temp = [];
-    
-    for (let i = 0; i < path.length; i++) {
-      if (path[i] != "") {
-        _temp.push(path[i]);
-      }
-    }
-    path = _temp;
+    let path = req.url;
 
+    if (path === "/") {
+      path = "";
+    } else {
+      if (path.charCodeAt() == 47) path = path.substring(1);
+      if (path.charCodeAt(path.length - 1) == 47)
+        path = path.substring(0, path.length - 1);
+      path = path.split("/");
+    }
+
+    const routes = this.routes[req.method][path.length];
+    let OuterI = 0;
     let r;
-    let routesReq = this.routes[req.method];
-    let outerI = 0;
-    
-    const routesLen = routesReq.length;
-    
-    for (; outerI < routesLen; outerI++) {
-      let route = routesReq[outerI];
-      let nRoute = route[0];
-      
-      const nRouteLen = nRoute.length;
-      
-      if (path.length != nRouteLen) continue;
+
+    for (; OuterI < routes.length; OuterI++) {
+      let route = routes[OuterI];
       let params = {};
       let i = 0;
-      
-      const tempRoute = nRoute.length
-      
-      for (; i < tempRoute; i++) {
-        let routePointer = nRoute[i];
-        if (routePointer.charAt() == ":" && path[i].length != 0) {
+      for (; i < route[0].length; i++) {
+        let routePointer = route[0][i];
+        if (routePointer.charCodeAt() == 58 && path[i].length > 0) {
           params[routePointer.substring(1)] = path[i];
         } else if (path[i] != routePointer) break;
       }
-      if (i != nRouteLen) continue;
+      if (i != route[0].length) continue;
       req.params = params;
       r = route;
       break;
@@ -112,9 +99,9 @@ class dank {
       res.end("Invalid route");
       return;
     }
-    let anchor = r[1];
+    const anchor = [...this.aftMiddleware, ...r[1]];
     let anchorI = 0;
-    
+
     const anchorLen = anchor.length;
     for (; anchorI < anchorLen; anchorI++) {
       let func = anchor[anchorI];
@@ -128,22 +115,25 @@ class dank {
   }
 
   start() {
+    /**
     let arr = Object.entries(this.routes);
     let i = 0;
-    
+
     const arrLen = arr.length;
-    
+
     for (; i < arrLen; i++) {
       let routes = arr[i][1];
       let innerI = 0;
-      
+
       const routesLen = routes.length;
-      
+
       for (; innerI < routesLen; innerI++) {
         let route = routes[innerI];
         route[1] = [...this.aftMiddleware, ...route[1]];
       }
     }
+    **/
+
     this.server = http
       .createServer(async (req, res) => {
         this.h(req, res);
