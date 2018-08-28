@@ -47,6 +47,8 @@ _Both async and regular functions work, so do (req, res, next) for some express 
 
 ## Additional features
 
+Visit /tests/ to see additional tests
+
 You're able to chain functions or pass objects to a route
 
 ```js

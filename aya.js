@@ -1,6 +1,6 @@
 const http = require("http");
 
-class dank {
+class aya {
   constructor(opts) {
     const defaults = {};
     this.opts = { ...defaults, ...opts };
@@ -15,14 +15,20 @@ class dank {
       TRACE: {},
       PATCH: {}
     };
-    this.Middleware = [];
+    this.middleware = [];
+
+    const handle = async (req, res) => {
+      this.h(req, res);
+    };
+
+    this.handler = handle;
   }
 
   use(func) {
     if (func.length == 2) {
-      this.Middleware.push(func);
+      this.middleware.push(func);
     } else if (func.length == 3) {
-      this.Middleware.push((req, res) => {
+      this.middleware.push((req, res) => {
         return new Promise(next => {
           func(req, res, next);
         });
@@ -58,8 +64,8 @@ class dank {
   }
 
   async h(req, res) {
-    for (let i = 0; i < this.Middleware.length; i++) {
-      const next = await this.Middleware[i](req, res);
+    for (let i = 0; i < this.middleware.length; i++) {
+      const next = await this.middleware[i](req, res);
       if (next != undefined) return;
     }
 
@@ -122,4 +128,4 @@ class dank {
     console.log("Listening on port", port);
   }
 }
-module.exports = dank;
+module.exports = aya;
