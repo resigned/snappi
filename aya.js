@@ -4,20 +4,10 @@ class aya {
   constructor(opts) {
     const defaults = {};
     this.opts = { ...defaults, ...opts };
-    this.routes = {
-      GET: {},
-      HEAD: {},
-      POST: {},
-      PUT: {},
-      DELETE: {},
-      CONNECT: {},
-      OPTIONS: {},
-      TRACE: {},
-      PATCH: {}
-    };
+    this.routes = {};
     this.middleware = [];
 
-    const handle = async (req, res) => {
+    const handle = (req, res) => {
       this.h(req, res);
     };
 
@@ -55,6 +45,8 @@ class aya {
   route(method, route, ...func) {
     const routeSTR = route.split("/").filter(String);
     try {
+      if (this.routes[method.toUpperCase()] == undefined)
+        this.routes[method.toUpperCase()] = {};
       if (this.routes[method.toUpperCase()][routeSTR.length] == undefined)
         this.routes[method.toUpperCase()][routeSTR.length] = [];
       this.routes[method.toUpperCase()][routeSTR.length].push([routeSTR, func]);
