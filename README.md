@@ -20,7 +20,7 @@ Snappi has a very _simple_ routing pipe just like popular frameworks, ie: expres
 #### Example
 
 ```js
-const Snappi = require("./aya.js");
+const Snappi = require("Snappi");
 
 const server = new Snappi();
 

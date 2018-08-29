@@ -1,6 +1,6 @@
-const Aya = require('../aya.js')
+const Snappi = require('Snappi')
 
-const app = new Aya()
+const app = new Snappi()
 
 app.use(async (req, res) => {
   req.test = 'hello2'

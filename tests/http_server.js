@@ -1,7 +1,7 @@
 const http = require('http')
-const Aya = require('../aya')
+const Snappi = require('Snappi')
 
-const app = new Aya()
+const app = new Snappi()
 
 app.use((req, res, next) => {
   req.one = true
