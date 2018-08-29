@@ -1,4 +1,4 @@
-# aya
+# Snappi
 
 A simple web framework that is simple and aims to be _fast_
 
@@ -13,16 +13,16 @@ async/await and ES6 features
 
 ## Routing explanation
 
-Aya has a very _simple_ routing pipe just like popular frameworks, ie: express
+Snappi has a very _simple_ routing pipe just like popular frameworks, ie: express
 
 `use` -> `route handlers`
 
 #### Example
 
 ```js
-const Aya = require("./aya.js");
+const Snappi = require("./aya.js");
 
-const server = new Aya();
+const server = new Snappi();
 
 server.use(async (req, res) => {
   req.test = "hello";
