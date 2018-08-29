@@ -11,11 +11,11 @@ class Snappi {
     this.handler = handle
   }
 
-  use (func) {
-    if (func.length <= 2) {
-      this.middleware.push(func)
-    } else if (func.length === 3) {
-      this.middleware.push((req, res) => new Promise(resolve => func(req, res, resolve)))
+  use (callback) {
+    if (callback.length <= 2) {
+      this.middleware.push(callback)
+    } else if (callback.length === 3) {
+      this.middleware.push((req, res) => new Promise(resolve => callback(req, res, resolve)))
     } else {
       throw new Error('Invalid function')
     }
@@ -26,70 +26,65 @@ class Snappi {
     try {
       if (this.routes[method.toUpperCase()] === undefined) this.routes[method.toUpperCase()] = {}
       if (this.routes[method.toUpperCase()][routeSTR.length] === undefined) this.routes[method.toUpperCase()][routeSTR.length] = []
-      this.routes[method.toUpperCase()][routeSTR.length].push([routeSTR, func])
+      this.routes[method.toUpperCase()][routeSTR.length].push({routeSTR: routeSTR, callbacks: func})
     } catch (err) {
       throw new Error('Invalid route setup')
     }
   }
 
   async h (req, res) {
-    for (let i = 0; i < this.middleware.length; i++) {
-      const next = await this.middleware[i](req, res)
+    for (const middleware of this.middleware) {
+      const next = await middleware(req, res)
       if (next !== undefined) return
     }
 
     let path = req.url
 
     if (path === '/') {
-      path = ''
+      path = []
     } else {
-      if (path.charCodeAt() === 47) path = path.substring(1)
-      if (path.charCodeAt(path.length - 1) === 47) {
+      if (path[0] === '/') path = path.substring(1)
+      if (path[path.length - 1] === '/') {
         path = path.substring(0, path.length - 1)
       }
       path = path.split('/')
     }
 
     const routes = this.routes[req.method][path.length]
-    let OuterI = 0
-    let r
+    let route
 
     if (routes !== undefined) {
-      for (; OuterI < routes.length; OuterI++) {
-        const route = routes[OuterI]
+      let routeIndex = 0; const routeIndexMax = routes.length; for (;routeIndex < routeIndexMax; routeIndex++) {
+        const tmpRoute = routes[routeIndex]
+        const tmpRouteLength = tmpRoute.routeSTR.length
         const params = {}
         let i = 0
-        for (; i < route[0].length; i++) {
-          const routePointer = route[0][i]
-          if (routePointer.charCodeAt() === 58 && path[i].length > 0) {
-            params[routePointer.substring(1)] = path[i]
-          } else if (path[i] !== routePointer) break
+        for (; i < tmpRouteLength; i++) {
+          const routeSegment = tmpRoute.routeSTR[i]
+          if (routeSegment[0] === ':' && path[i].length > 0) {
+            params[routeSegment.substring(1)] = path[i]
+          } else if (path[i] !== routeSegment) break
         }
 
-        if (i === route[0].length) {
+        if (i === tmpRouteLength) {
           req.params = params
-          r = route
+          route = tmpRoute
           break
         }
       }
     }
 
-    if (r === undefined) {
+    if (route === undefined) {
       res.end('Invalid route')
       return
     }
 
-    const anchor = r[1]
-    let anchorI = 0
-
-    const anchorLen = anchor.length
-    for (; anchorI < anchorLen; anchorI++) {
-      const func = anchor[anchorI]
-      if (func instanceof Function) {
-        const next = await func(req, res)
+    for (const callback of route.callbacks) {
+      if (callback instanceof Function) {
+        const next = await callback(req, res)
         if (next !== undefined) return
       } else {
-        Object.assign(req, func)
+        Object.assign(req, callback)
       }
     }
   }
@@ -98,7 +93,6 @@ class Snappi {
     http
       .createServer(this.handler)
       .listen({ port })
-    console.log('Listening on port', port)
   }
 }
 module.exports = Snappi

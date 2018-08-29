@@ -5,7 +5,7 @@ A simple web framework that is simple and aims to be _fast_
 **Supports**
 async/await and ES6 features
 
-### Goals
+## Goals
 
 - Stay updated with latest JS features
 - **Always** improving performance
@@ -17,7 +17,7 @@ Snappi has a very _simple_ routing pipe just like popular frameworks, ie: expres
 
 `use` -> `route handlers`
 
-#### Example
+### Example
 
 ```js
 const Snappi = require("Snappi");
@@ -43,7 +43,7 @@ server.route("GET", "/", (req, res) => {
 server.listen(80);
 ```
 
-_Both async and regular functions work, so do (req, res, next) for some express plugin/middleware support_
+Both async and regular functions work, so do (req, res, next) for some express plugin/middleware support
 
 ## Additional features
 
