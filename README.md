@@ -20,9 +20,9 @@ Aya has a very _simple_ routing pipe just like popular frameworks, ie: express
 #### Example
 
 ```js
-const aya = require("./aya.js");
+const Aya = require("./aya.js");
 
-const server = new aya();
+const server = new Aya();
 
 server.use(async (req, res) => {
   req.test = "hello";
