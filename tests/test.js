@@ -2,11 +2,11 @@ const Aya = require('../aya.js')
 
 const app = new Aya()
 
-app.use(async (req) => {
-  req.test = 'hello'
+app.use(async (req, res) => {
+  req.test = 'hello2'
 })
 
-app.use((req) => {
+app.use((req, res) => {
   console.log(req.test) // would return "hello"
 })
 

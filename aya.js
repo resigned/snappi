@@ -1,16 +1,13 @@
 const http = require('http')
 
 class aya {
-  constructor (opts) {
-    const defaults = {}
-    this.opts = { ...defaults, ...opts }
+  constructor () {
     this.routes = {}
     this.middleware = []
 
     const handle = (req, res) => {
       this.h(req, res)
     }
-
     this.handler = handle
   }
 
@@ -57,20 +54,23 @@ class aya {
     let OuterI = 0
     let r
 
-    for (; OuterI < routes.length; OuterI++) {
-      const route = routes[OuterI]
-      const params = {}
-      let i = 0
-      for (; i < route[0].length; i++) {
-        const routePointer = route[0][i]
-        if (routePointer.charCodeAt() === 58 && path[i].length > 0) {
-          params[routePointer.substring(1)] = path[i]
-        } else if (path[i] !== routePointer) break
-      }
-      if (i === route[0].length) {
-        req.params = params
-        r = route
-        break
+    if (routes !== undefined) {
+      for (; OuterI < routes.length; OuterI++) {
+        const route = routes[OuterI]
+        const params = {}
+        let i = 0
+        for (; i < route[0].length; i++) {
+          const routePointer = route[0][i]
+          if (routePointer.charCodeAt() === 58 && path[i].length > 0) {
+            params[routePointer.substring(1)] = path[i]
+          } else if (path[i] !== routePointer) break
+        }
+
+        if (i === route[0].length) {
+          req.params = params
+          r = route
+          break
+        }
       }
     }
 
@@ -78,6 +78,7 @@ class aya {
       res.end('Invalid route')
       return
     }
+
     const anchor = r[1]
     let anchorI = 0
 
@@ -94,10 +95,8 @@ class aya {
   }
 
   listen (port) {
-    this.server = http
-      .createServer(async (req, res) => {
-        this.h(req, res)
-      })
+    http
+      .createServer(this.handler)
       .listen({ port })
     console.log('Listening on port', port)
   }
