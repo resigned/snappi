@@ -57,7 +57,7 @@ server.route(
   "/",
   { test: "hello" },
   (req, res) => {
-    console.log(req.test); //would return hellp
+    console.log(req.test); //would return hello
   },
   (req, res) => {
     res.end("hey");
