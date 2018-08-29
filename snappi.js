@@ -1,6 +1,6 @@
 const http = require('http')
 
-class aya {
+class Snappi {
   constructor () {
     this.routes = {}
     this.middleware = []
@@ -101,4 +101,4 @@ class aya {
     console.log('Listening on port', port)
   }
 }
-module.exports = aya
+module.exports = Snappi
