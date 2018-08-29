@@ -8,7 +8,7 @@ async/await and ES6 features
 ### Goals
 
 - Stay updated with latest JS features
-- **Always** improve performance
+- **Always** improving performance
 - Add useful features that aren't _expensive_
 
 ## Routing explanation
