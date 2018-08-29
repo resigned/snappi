@@ -1,17 +1,17 @@
-const aya = require("../aya.js");
+const Aya = require('../aya.js')
 
-const app = new aya();
+const app = new Aya()
 
-app.use(async (req, res) => {
-  req.test = "hello";
-});
+app.use(async (req) => {
+  req.test = 'hello'
+})
 
-app.use((req, res) => {
-  //console.log(req.test); //would return "hello"
-});
+app.use((req) => {
+  console.log(req.test) // would return "hello"
+})
 
-app.route("GET", "/", (req, res) => {
-  res.end("Hello");
-});
+app.route('GET', '/', (req, res) => {
+  res.end('Hello')
+})
 
-app.listen(80);
+app.listen(80)

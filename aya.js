@@ -1,123 +1,105 @@
-const http = require("http");
+const http = require('http')
 
 class aya {
-  constructor(opts) {
-    const defaults = {};
-    this.opts = { ...defaults, ...opts };
-    this.routes = {};
-    this.middleware = [];
+  constructor (opts) {
+    const defaults = {}
+    this.opts = { ...defaults, ...opts }
+    this.routes = {}
+    this.middleware = []
 
     const handle = (req, res) => {
-      this.h(req, res);
-    };
+      this.h(req, res)
+    }
 
-    this.handler = handle;
+    this.handler = handle
   }
 
-  use(func) {
-    if (func.length == 2) {
-      this.middleware.push(func);
-    } else if (func.length == 3) {
-      this.middleware.push((req, res) => {
-        return new Promise(next => {
-          func(req, res, next);
-        });
-      });
+  use (func) {
+    if (func.length <= 2) {
+      this.middleware.push(func)
+    } else if (func.length === 3) {
+      this.middleware.push((req, res) => new Promise(resolve => func(req, res, resolve)))
     } else {
-      throw new Error("Invalid function");
+      throw new Error('Invalid function')
     }
   }
 
-  aft(func) {
-    if (func.length == 2) {
-      this.aftMiddleware.push(func);
-    } else if (func.length == 3) {
-      this.aftMiddleware.push((req, res) => {
-        return new Promise(next => {
-          func(req, res, next);
-        });
-      });
-    } else {
-      throw new Error("Invalid function");
-    }
-  }
-
-  route(method, route, ...func) {
-    const routeSTR = route.split("/").filter(String);
+  route (method, route, ...func) {
+    const routeSTR = route.split('/').filter(String)
     try {
-      if (this.routes[method.toUpperCase()] == undefined)
-        this.routes[method.toUpperCase()] = {};
-      if (this.routes[method.toUpperCase()][routeSTR.length] == undefined)
-        this.routes[method.toUpperCase()][routeSTR.length] = [];
-      this.routes[method.toUpperCase()][routeSTR.length].push([routeSTR, func]);
+      if (this.routes[method.toUpperCase()] === undefined) this.routes[method.toUpperCase()] = {}
+      if (this.routes[method.toUpperCase()][routeSTR.length] === undefined) this.routes[method.toUpperCase()][routeSTR.length] = []
+      this.routes[method.toUpperCase()][routeSTR.length].push([routeSTR, func])
     } catch (err) {
-      throw new Error(`Invalid route setup`);
+      throw new Error('Invalid route setup')
     }
   }
 
-  async h(req, res) {
+  async h (req, res) {
     for (let i = 0; i < this.middleware.length; i++) {
-      const next = await this.middleware[i](req, res);
-      if (next != undefined) return;
+      const next = await this.middleware[i](req, res)
+      if (next !== undefined) return
     }
 
-    let path = req.url;
+    let path = req.url
 
-    if (path === "/") {
-      path = "";
+    if (path === '/') {
+      path = ''
     } else {
-      if (path.charCodeAt() == 47) path = path.substring(1);
-      if (path.charCodeAt(path.length - 1) == 47)
-        path = path.substring(0, path.length - 1);
-      path = path.split("/");
+      if (path.charCodeAt() === 47) path = path.substring(1)
+      if (path.charCodeAt(path.length - 1) === 47) {
+        path = path.substring(0, path.length - 1)
+      }
+      path = path.split('/')
     }
 
-    const routes = this.routes[req.method][path.length];
-    let OuterI = 0;
-    let r;
+    const routes = this.routes[req.method][path.length]
+    let OuterI = 0
+    let r
 
     for (; OuterI < routes.length; OuterI++) {
-      let route = routes[OuterI];
-      let params = {};
-      let i = 0;
+      const route = routes[OuterI]
+      const params = {}
+      let i = 0
       for (; i < route[0].length; i++) {
-        let routePointer = route[0][i];
-        if (routePointer.charCodeAt() == 58 && path[i].length > 0) {
-          params[routePointer.substring(1)] = path[i];
-        } else if (path[i] != routePointer) break;
+        const routePointer = route[0][i]
+        if (routePointer.charCodeAt() === 58 && path[i].length > 0) {
+          params[routePointer.substring(1)] = path[i]
+        } else if (path[i] !== routePointer) break
       }
-      if (i != route[0].length) continue;
-      req.params = params;
-      r = route;
-      break;
+      if (i === route[0].length) {
+        req.params = params
+        r = route
+        break
+      }
     }
 
-    if (r == undefined) {
-      res.end("Invalid route");
-      return;
+    if (r === undefined) {
+      res.end('Invalid route')
+      return
     }
-    const anchor = r[1];
-    let anchorI = 0;
+    const anchor = r[1]
+    let anchorI = 0
 
-    const anchorLen = anchor.length;
+    const anchorLen = anchor.length
     for (; anchorI < anchorLen; anchorI++) {
-      let func = anchor[anchorI];
+      const func = anchor[anchorI]
       if (func instanceof Function) {
-        let next = await func(req, res);
-        if (next != undefined) return;
+        const next = await func(req, res)
+        if (next !== undefined) return
       } else {
-        req = { ...req, ...func };
+        Object.assign(req, func)
       }
     }
   }
 
-  listen(port) {
+  listen (port) {
     this.server = http
       .createServer(async (req, res) => {
-        this.h(req, res);
+        this.h(req, res)
       })
-      .listen({ port: port });
-    console.log("Listening on port", port);
+      .listen({ port })
+    console.log('Listening on port', port)
   }
 }
-module.exports = aya;
+module.exports = aya
