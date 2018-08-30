@@ -1,5 +1,5 @@
 const http = require('http')
-const Snappi = require('snappi')
+const Snappi = require('../snappi')
 
 const app = new Snappi()
 
