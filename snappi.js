@@ -10,8 +10,17 @@ class Snappi {
       this.h(req, res)
     }
     this.handler = handle
-  }
 
+    this.get = (route, ...func) => { return this.route('GET', route, func) }
+    this.head = (route, ...func) => { return this.route('HEAD', route, func) }
+    this.post = (route, ...func) => { return this.route('POST', route, func) }
+    this.put = (route, ...func) => { return this.route('PUT', route, func) }
+    this.delete = (route, ...func) => { return this.route('DELETE', route, func) }
+    this.connect = (route, ...func) => { return this.route('CONNECT', route, func) }
+    this.options = (route, ...func) => { return this.route('OPTIONS', route, func) }
+    this.patch = (route, ...func) => { return this.route('PATCH', route, func) }
+    this.trace = (route, ...func) => { return this.route('TRACE', route, func) }
+  }
   use (callback) {
     if (callback.length <= 2) {
       this.middleware.push(callback)
@@ -20,17 +29,20 @@ class Snappi {
     } else {
       throw new Error('Invalid function')
     }
+    return this
   }
 
   route (method, route, ...func) {
-    route = prepareURL(route)
+    if (func[0] instanceof Array) func = func[0]
     try {
+      route = prepareURL(route)
       if (this.routes[method.toUpperCase()] === undefined) this.routes[method.toUpperCase()] = {}
       if (this.routes[method.toUpperCase()][route.length] === undefined) this.routes[method.toUpperCase()][route.length] = []
       this.routes[method.toUpperCase()][route.length].push({route: route, callbacks: func})
     } catch (err) {
       throw new Error('Invalid route setup')
     }
+    return this
   }
 
   async h (req, res) {
