@@ -1,5 +1,5 @@
 const http = require('http')
-const Snappify13 = require('../snappi')
+const Snappify13 = require('../snappify13')
 
 const app = new Snappify13()
 
