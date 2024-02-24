@@ -1,6 +1,6 @@
-const Snappi = require('Snappi')
+const Snappify13 = require('Snappify13')
 
-const app = new Snappi()
+const app = new Snappify13()
 
 app.use(async (req, res) => {
   req.test = 'hello2'
