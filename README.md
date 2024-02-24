@@ -1,4 +1,4 @@
-# Snappi
+# Snappify13
 
 A simple web framework that is simple and aims to be _fast_
 
@@ -20,9 +20,9 @@ Snappi has a very _simple_ routing pipe just like popular frameworks, ie: expres
 ### Example
 
 ```js
-const Snappi = require("Snappi");
+const Snappi = require("Snappify13");
 
-const server = new Snappi();
+const server = new Snappify13();
 
 server.use(async (req, res) => {
   req.test = "hello";

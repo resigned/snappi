@@ -1,6 +1,6 @@
 const http = require('http')
 
-class Snappi {
+class Snappify13 {
   constructor () {
     console.log('dev version of snappi')
     this.routes = {}
@@ -110,4 +110,4 @@ const prepareURL = (path) => {
   return path
 }
 
-module.exports = Snappi
+module.exports = Snappify13
